@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true },
@@ -8,13 +8,28 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ['user', 'perusahaan', 'admin'],
-    default: 'user'
-  }
+    default: 'user',
+  },
+  lokasi: String,
+  provinsi: String,
+  tentang: String,
+  skill: [String],
+  cv: [{
+    id: Number,
+    cv: String,
+  }],
+  status: String,
+  lowongan: [{
+    id: String,
+  }],
+  perusahaan: [{
+    id: String,
+  }],
 });
 
-// Hash password sebelum disimpan
+// Hash password sebelum save
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next(); // hanya hash jika password berubah
+  if (!this.isModified('password')) return next();
   try {
     const hashed = await bcrypt.hash(this.password, 10);
     this.password = hashed;
@@ -24,4 +39,5 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+export default User;

@@ -1,15 +1,14 @@
-require('dotenv').config();
-const Hapi = require('@hapi/hapi');
-const Jwt = require('@hapi/jwt');
-const mongoose = require('mongoose');
-const routes = require('./routes/user.routes');
-const User = require('./models/user.model');
+import 'dotenv/config'; // langsung load dotenv
+import Hapi from '@hapi/hapi';
+import Jwt from '@hapi/jwt';
+import mongoose from 'mongoose';
+import routes from './routes/authRoutes.js';  // pastikan pakai .js di ESM
+import User from './models/user.model.js';
 
 const init = async () => {
-  // 🔌 Koneksi ke MongoDB
+  // Koneksi MongoDB
   await mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+    // Warning untuk useNewUrlParser dan useUnifiedTopology di driver baru bisa diabaikan
   });
   console.log('✅ MongoDB Connected');
 
@@ -18,15 +17,15 @@ const init = async () => {
     host: 'localhost',
     routes: {
       cors: {
-        origin: ['*']
-      }
-    }
+        origin: ['*'],
+      },
+    },
   });
 
-  // 🔐 Register plugin JWT
+  // Register JWT plugin
   await server.register(Jwt);
 
-  // 🚧 Define strategi auth langsung di sini (tanpa middleware)
+  // Definisikan strategi auth JWT
   server.auth.strategy('jwt', 'jwt', {
     keys: process.env.JWT_SECRET,
     verify: {
@@ -36,31 +35,29 @@ const init = async () => {
       nbf: true,
       exp: true,
       maxAgeSec: 86400, // 1 hari
-      timeSkewSec: 15
+      timeSkewSec: 15,
     },
-    validate: async (artifacts, request, h) => {
-      return {
-        isValid: true,
-        credentials: artifacts.decoded.payload
-      };
-    }
+    validate: async (artifacts, request, h) => ({
+      isValid: true,
+      credentials: artifacts.decoded.payload,
+    }),
   });
 
-  server.auth.default('jwt');
+  server.auth.default('jwt'); // Semua route pakai auth default
 
-  // 👤 Buat akun admin default kalau belum ada
+  // Buat admin jika belum ada
   const adminExists = await User.findOne({ role: 'admin' });
   if (!adminExists) {
     await User.create({
       username: 'admin',
       email: 'admin@example.com',
-      password: await require('bcrypt').hash('admin123', 10),
-      role: 'admin'
+      password: 'admin123', // hash otomatis di model
+      role: 'admin',
     });
     console.log('👑 Admin account created');
   }
 
-  // 🌐 Route
+  // Daftarkan routes
   server.route(routes);
 
   await server.start();
