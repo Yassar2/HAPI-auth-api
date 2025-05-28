@@ -7,6 +7,12 @@ const DataPelamarSchema = new Schema({
     ref: 'User',
     required: true
   },
+  nama: String,           // Tambah
+  email: String,          // Tambah
+  role: {                 // Tambah
+    type: String,
+    default: 'pelamar'
+  },
   picture: String,
   spesialisasi: String,
   lokasi: String,
@@ -18,5 +24,4 @@ const DataPelamarSchema = new Schema({
   }
 }, { timestamps: true });
 
-// ⬇️ Tambahkan nama koleksi eksplisit agar tidak berubah
 module.exports = mongoose.model('DataPelamar', DataPelamarSchema, 'data_pelamars');

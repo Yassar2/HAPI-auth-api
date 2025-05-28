@@ -1,14 +1,24 @@
-// routes/admin.js
-const Boom = require('@hapi/boom');
+const DataAdmin = require('../models/DataAdmin');
+
+const getAllAdmin = async (request, h) => {
+  try {
+    const data = await DataAdmin.find();
+    return h.response(data);
+  } catch (error) {
+    return h.response({ message: 'Server error', error: error.message }).code(500);
+  }
+};
 
 module.exports = [
   {
     method: 'GET',
     path: '/api/admin',
-    handler: (request, h) => {
-      return '🚀 Admin route is working!';
-    }
-  }
-
-  // Kamu bisa tambah route lain di sini, misal untuk CRUD admin nanti
+    options: {
+      auth: {
+        strategies: ['jwt'],
+        scope: ['admin'], // Hanya admin yang boleh akses data admin
+      }
+    },
+    handler: getAllAdmin,
+  },
 ];

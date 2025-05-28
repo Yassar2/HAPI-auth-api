@@ -7,7 +7,12 @@ const DataPerusahaanSchema = new Schema({
     ref: 'User',
     required: true
   },
-  nama: String,
+  nama: String,           // Tambah
+  email: String,          // Tambah
+  role: {                 // Tambah
+    type: String,
+    default: 'perusahaan'
+  },
   picture: String,
   situs: String,
   tahun_didirikan: String,
@@ -20,5 +25,4 @@ const DataPerusahaanSchema = new Schema({
   misi: String
 }, { timestamps: true });
 
-// ⬇️ Tambahkan nama koleksi eksplisit
 module.exports = mongoose.model('DataPerusahaan', DataPerusahaanSchema, 'data_perusahaans');

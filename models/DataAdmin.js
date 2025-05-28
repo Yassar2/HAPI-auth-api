@@ -6,6 +6,12 @@ const DataAdminSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  nama: String,           // Tambah
+  email: String,          // Tambah
+  role: {                 // Tambah
+    type: String,
+    default: 'admin'
   }
 }, { timestamps: true });
 

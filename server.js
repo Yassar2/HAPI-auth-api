@@ -24,7 +24,7 @@ const init = async () => {
     host: 'localhost',
     routes: {
       cors: {
-        origin: ['*'], // ⚠️ Bisa diubah ke whitelist domain saat production
+        origin: ['*'],
       },
     },
   });
@@ -32,26 +32,28 @@ const init = async () => {
   // Register plugin JWT
   await server.register(Jwt);
 
-  // JWT Auth Strategy
+  // JWT Auth Strategy dengan perbaikan scope
   server.auth.strategy('jwt', 'jwt', {
     keys: process.env.JWT_SECRET,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: 15 * 60, // 15 menit
+      maxAgeSec: 24 * 60 * 60,
     },
     validate: (artifacts, request, h) => {
       const payload = artifacts.decoded?.payload;
-      if (!payload?.id || !payload?.role) {
+      if (!payload?.userId || !payload?.email || !payload?.role) {
         return { isValid: false };
       }
 
       return {
         isValid: true,
         credentials: {
-          id: payload.id,
+          id: payload.userId,
+          email: payload.email,
           role: payload.role,
+          scope: [payload.role], // ⬅️ Tambah scope dari role JWT
         },
       };
     },
@@ -60,19 +62,17 @@ const init = async () => {
   // Default auth strategy
   server.auth.default('jwt');
 
-  // Route root tanpa autentikasi
+  // Root route
   server.route({
     method: 'GET',
     path: '/',
     options: {
       auth: false,
     },
-    handler: () => {
-      return '🎯 Job Portal API is running';
-    },
+    handler: () => '🎯 Job Portal API is running',
   });
 
-  // Register all routes
+  // Daftarkan semua routes
   [
     ...authRoutes,
     ...userRoutes,
@@ -85,7 +85,7 @@ const init = async () => {
     ...pelamarRoutes,
   ].forEach((route) => server.route(route));
 
-  // Middleware: Global error formatter (opsional tapi rapi)
+  // Global error handler
   server.ext('onPreResponse', (request, h) => {
     const response = request.response;
     if (response.isBoom) {
