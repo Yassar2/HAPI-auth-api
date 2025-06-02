@@ -17,6 +17,7 @@ const skillRoutes = require('./routes/skill');
 const lowonganRoutes = require('./routes/lowongan');
 const refreshTokenRoutes = require('./routes/refreshToken');
 const pelamarRoutes = require('./routes/pelamar');
+const tersimpanRoutes = require('./routes/tersimpan'); // ✅ Tambah import tersimpan
 
 const init = async () => {
   const server = Hapi.server({
@@ -24,7 +25,7 @@ const init = async () => {
     host: 'localhost',
     routes: {
       cors: {
-        origin: ['*'],
+        origin: ['*'], // ⚠️ Bisa diubah ke whitelist domain saat production
       },
     },
   });
@@ -32,14 +33,14 @@ const init = async () => {
   // Register plugin JWT
   await server.register(Jwt);
 
-  // JWT Auth Strategy dengan perbaikan scope
+  // JWT Auth Strategy (✅ inject scope pakai role)
   server.auth.strategy('jwt', 'jwt', {
     keys: process.env.JWT_SECRET,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: 24 * 60 * 60,
+      maxAgeSec: 24 * 60 * 60, // 1 hari
     },
     validate: (artifacts, request, h) => {
       const payload = artifacts.decoded?.payload;
@@ -53,7 +54,7 @@ const init = async () => {
           id: payload.userId,
           email: payload.email,
           role: payload.role,
-          scope: [payload.role], // ⬅️ Tambah scope dari role JWT
+          scope: [payload.role], // ✅ inject scope dari role
         },
       };
     },
@@ -62,17 +63,18 @@ const init = async () => {
   // Default auth strategy
   server.auth.default('jwt');
 
-  // Root route
+  // Route root tanpa autentikasi
   server.route({
     method: 'GET',
     path: '/',
     options: {
       auth: false,
     },
-    handler: () => '🎯 Job Portal API is running',
+    handler: () => {
+      return '🎯 Job Portal API is running';
+    },
   });
 
-  // Daftarkan semua routes
   [
     ...authRoutes,
     ...userRoutes,
@@ -83,9 +85,10 @@ const init = async () => {
     ...lowonganRoutes,
     ...refreshTokenRoutes,
     ...pelamarRoutes,
+    ...tersimpanRoutes, // ✅ Tambah routes tersimpan
   ].forEach((route) => server.route(route));
 
-  // Global error handler
+  // Middleware: Global error formatter
   server.ext('onPreResponse', (request, h) => {
     const response = request.response;
     if (response.isBoom) {

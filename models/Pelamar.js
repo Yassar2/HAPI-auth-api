@@ -1,12 +1,39 @@
 const mongoose = require('mongoose');
 
 const pelamarSchema = new mongoose.Schema({
-  id_pelamar: { type: Number, required: true, unique: true },
-  nama: { type: String, required: true },
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['pelamar'], default: 'pelamar' },
-  created_at: { type: String, required: true } // format: YYYY-MM-DD
+  id_pelamar: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  picture: {
+    type: String,
+    default: '', // Default kosong
+  },
+  spesialisasi: {
+    type: String,
+    default: '',
+  },
+  lokasi: {
+    type: String,
+    default: '',
+  },
+  provinsi: {
+    type: String,
+    default: '',
+  },
+  tentang: {
+    type: String,
+    default: '',
+  },
+  skill: {
+    type: [String], // Array of skill
+    default: [],
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model('Pelamar', pelamarSchema);

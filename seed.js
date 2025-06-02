@@ -1,15 +1,16 @@
-// File: seed.js
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+// Import models
 const User = require('./models/User');
 const Kategori = require('./models/Kategori');
 const Skill = require('./models/Skill');
 const Perusahaan = require('./models/Perusahaan');
 const Lowongan = require('./models/Lowongan');
 const Pelamar = require('./models/Pelamar');
-
+const LowonganTersimpan = require('./models/LowonganTersimpan');
+const PerusahaanTersimpan = require('./models/PerusahaanTersimpan');
 
 const seed = async () => {
   try {
@@ -49,7 +50,7 @@ const seed = async () => {
         created_at: today,
       });
       await Perusahaan.create({
-        id_perusahaan: perusahaanUser._id,
+        id_perusahaan: perusahaanUser._id, // kalau memang pakai field ini juga boleh
         nama: 'PT Teknologi Hebat',
         picture: 'logo.png',
         situs: 'https://teknologihebat.co.id',
@@ -129,6 +130,42 @@ const seed = async () => {
         tanggalPost: today,
       });
       console.log('✅ Lowongan Frontend Developer berhasil ditambahkan');
+    }
+
+    // --- Seed Lowongan Tersimpan ---
+    const pelamar = await Pelamar.findOne({ id_pelamar: pelamarUser._id });
+    const lowongan = await Lowongan.findOne({ posisi: 'Frontend Developer' });
+
+    if (pelamar && lowongan) {
+      const existLowonganTersimpan = await LowonganTersimpan.findOne({
+        id_pelamar: pelamar.id_pelamar,
+        id_lowongan: lowongan._id,
+      });
+
+      if (!existLowonganTersimpan) {
+        await LowonganTersimpan.create({
+          id_pelamar: pelamar.id_pelamar,
+          id_lowongan: lowongan._id,
+        });
+        console.log('✅ Lowongan tersimpan berhasil dibuat');
+      }
+    }
+
+    // --- Seed Perusahaan Tersimpan ---
+    const perusahaanData = await Perusahaan.findOne({ nama: 'PT Teknologi Hebat' });
+    if (pelamar && perusahaanData) {
+      const existPerusahaanTersimpan = await PerusahaanTersimpan.findOne({
+        id_pelamar: pelamar.id_pelamar,
+        id_perusahaan: perusahaanData._id, // PENTING: gunakan _id, bukan id_perusahaan
+      });
+
+      if (!existPerusahaanTersimpan) {
+        await PerusahaanTersimpan.create({
+          id_pelamar: pelamar.id_pelamar,
+          id_perusahaan: perusahaanData._id, // ini juga pakai _id
+        });
+        console.log('✅ Perusahaan tersimpan berhasil dibuat');
+      }
     }
 
     process.exit(0);
