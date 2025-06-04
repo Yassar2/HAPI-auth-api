@@ -5,11 +5,12 @@ const DataPerusahaanSchema = new Schema({
   id_perusahaan: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    unique: true,  // pastikan unique supaya satu user cuma punya satu perusahaan
   },
-  nama: String,           // Tambah
-  email: String,          // Tambah
-  role: {                 // Tambah
+  nama: String,
+  email: String,
+  role: {
     type: String,
     default: 'perusahaan'
   },

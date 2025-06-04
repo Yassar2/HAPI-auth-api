@@ -23,9 +23,13 @@ const getAdminById = async (request, h) => {
 const updateAdminProfile = async (request, h) => {
   try {
     const userId = request.auth.credentials.id;
-    const updateData = request.payload;
+    const updateData = { ...request.payload };
+
+    // Hapus field yang tidak boleh diubah
+    delete updateData.id_admin;
+
     const updated = await DataAdmin.findOneAndUpdate(
-      { userId },
+      { id_admin: userId },
       { $set: updateData },
       { new: true, upsert: true }
     );

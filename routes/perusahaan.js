@@ -23,9 +23,13 @@ const getPerusahaanById = async (request, h) => {
 const updatePerusahaanProfile = async (request, h) => {
   try {
     const userId = request.auth.credentials.id;
-    const updateData = request.payload;
+    const updateData = { ...request.payload };
+
+    // Hapus field yang tidak boleh diubah
+    delete updateData.id_perusahaan;
+
     const updated = await DataPerusahaan.findOneAndUpdate(
-      { userId },
+      { id_perusahaan: userId },
       { $set: updateData },
       { new: true, upsert: true }
     );
